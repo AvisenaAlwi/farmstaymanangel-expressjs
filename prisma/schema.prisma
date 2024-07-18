@@ -1,0 +1,134 @@
+datasource db {
+  provider = "mysql" // Atau sesuaikan dengan provider database yang digunakan
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id       Int     @id @default(autoincrement())
+  name     String
+  username String  @unique
+  password String
+  gender   Gender
+  role     Role
+  token    String? // Token bisa null jika tidak selalu ada
+}
+
+model Guest {
+  id      Int       @id @default(autoincrement())
+  name    String
+  image   String
+  email       String   @unique
+  phoneNumber String
+  Gallery Gallery[]
+  Review  Review[]
+  Booking  Booking[]
+  Activity  Activity[]
+  countryId Int  // Foreign key
+  country     Country  @relation(fields: [countryId], references: [id])
+}
+
+model Room {
+  id          Int        @id @default(autoincrement())
+  name        String
+  description String
+  price       Float
+  capacity    Int
+  image String
+  bookings    Booking[]  @relation("RoomBookings")
+  facilities  Facility[] @relation("RoomFacilities")
+}
+
+model Facility {
+  id        Int      @id @default(autoincrement())
+  name      String
+  rooms     Room[]   @relation("RoomFacilities")
+}
+
+model Booking {
+  id        Int       @id @default(autoincrement())
+  noBooking String
+  startDate String
+  endDate   String
+  totalPrice Float
+  bookingMethod String
+  paymentMethod String
+  paymentStatus String
+  paymentDate String
+  roomId    Int
+  room      Room      @relation(fields: [roomId], references: [id], name: "RoomBookings")
+  guestId    Int
+  guest Guest @relation(fields: [guestId], references: [id])
+
+}
+
+model Service {
+  id          Int    @id @default(autoincrement())
+  title       String
+  image       String
+  description String
+}
+
+model Gallery {
+  id        Int       @id @default(autoincrement())
+  guestId   Int
+  image     String
+  description String
+  title String
+  guest Guest @relation(fields: [guestId], references: [id])
+  @@index([guestId])
+}
+
+model Activity {
+  id        Int      @id @default(autoincrement())
+  title      String
+  date      DateTime
+  description String  @db.VarChar(length: 5000)
+  image String
+  type String
+  guestId   Int
+  guest     Guest    @relation(fields: [guestId], references: [id])
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  content   String
+  title   String
+  rating    Int
+  guestId   Int
+  guest     Guest    @relation(fields: [guestId], references: [id])
+  @@index([guestId])
+}
+
+model Country {
+  id        Int      @id @default(autoincrement())
+  name      String
+  capital   String?
+  population String?
+  region    String?
+  subregion String?
+  continents String?
+  googlemaps String?
+  flags String?
+  guests    Guest[]
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum ImageType {
+  PROFILE
+  GALLERY
+  OTHER
+}
